@@ -1,0 +1,17 @@
+# Node / build artifacts
+node_modules/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Asset pack: downloaded from a GitHub Release by install-pet.cjs, not tracked.
+assets.tar.gz
+素材/
+蓝色大肥鱼表情包/
+
+# 另一个独立项目（壁纸插件），不属于本仓库
+install-wallpaper.cjs
