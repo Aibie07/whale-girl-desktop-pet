@@ -14,7 +14,7 @@ const REACTION_SRC_DIR = path.join(ROOT, "蓝色大肥鱼表情包");  // reacti
 const SRC_DIR = path.join(ROOT, "pet-src");                    // plugin source
 
 // Change this to your own Release asset URL (or set DSH_PET_ASSETS_URL).
-const DEFAULT_ASSETS_URL = "https://github.com/Aibie07/-/releases/download/v1.0.0/assets.tar.gz";
+const DEFAULT_ASSETS_URL = "https://github.com/Aibie07/whale-girl-desktop-pet/releases/download/v1.0.0/assets.tar.gz";
 
 const DSH_HOME = process.env.DSH_HOME || path.join(os.homedir(), ".dsh");
 const TARGET = path.join(DSH_HOME, "profiles", "node_modules", "dsh-pet");

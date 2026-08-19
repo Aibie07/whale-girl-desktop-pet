@@ -24,7 +24,7 @@
 tip:本插件目前只通过 git clone 安装
 
 ```bash
-git clone https://github.com/Aibie07/- dsh-pet
+git clone https://github.com/Aibie07/whale-girl-desktop-pet dsh-pet
 cd dsh-pet
 node install-pet.cjs
 ```
@@ -37,7 +37,7 @@ node install-pet.cjs
 
 皮肤和表情包体积较大（约 488MB），**不放在 git 仓库里**，而是打包成 `assets.tar.gz` 上传到 GitHub Release。安装脚本会在素材目录缺失时自动下载解压。
 
-- 下载地址默认为 `https://github.com/Aibie07/-/releases/download/v1.0.0/assets.tar.gz`；
+- 下载地址默认为 `https://github.com/Aibie07/whale-girl-desktop-pet/releases/download/v1.0.0/assets.tar.gz`；
 - 若你 fork 后改了 Release 地址，可用环境变量覆盖：`DSH_PET_ASSETS_URL=<你的下载地址> node install-pet.cjs`；
 - 也可以手动下载 `assets.tar.gz`，解压到项目根目录（得到 `素材/` 和 `蓝色大肥鱼表情包/`）后再运行安装脚本。
 
