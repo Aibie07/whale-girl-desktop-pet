@@ -11,15 +11,17 @@
   - 右键弹出菜单：调大小 / 换肤 / 动作 / 轮番播放 / 查余额 / 复位位置 / 隐藏。
 - **多套皮肤**：`素材/` 目录下的 GIF 自动识别为皮肤，右键「换肤」切换。
 - **查询余额**：点击「查余额」显示 DeepSeek API 余额。
-  - 🔒 API 密钥由宿主端运行时读取（`DEEPSEEK_API_KEY`），**不会写入浏览器**。
+  -  API 密钥由宿主端运行时读取（`DEEPSEEK_API_KEY`），**不会写入浏览器**。
 
 ## 依赖
 
 - 已安装 [DeepSeek Harness Desktop](https://github.com/deepseek-ai/deepseek-harness)。
-- 在 DSH 中配置好 DeepSeek API 密钥（`DEEPSEEK_API_KEY`）。
-- Node.js 18+（安装脚本用 `fetch` 下载素材包）。
+- 在 DSH 中配置好 DeepSeek API 密钥（`DEEPSEEK_API_KEY`）。自行在deepseek开放平台获取密钥（https://platform.deepseek.com/usage）
+- 已配置Node.js 18+（安装脚本用 `fetch` 下载素材包）。
+- 已安装Git
 
 ## 安装
+tip:本插件目前只通过 git clone 安装
 
 ```bash
 git clone https://github.com/Aibie07/- dsh-pet
@@ -54,13 +56,13 @@ node install-pet.cjs
 ```
 
 - 皮肤命名约定（每个皮肤 5 张）：`1.gif` 待机A、`2.gif` 思考、`3.gif` 待机B、`4.gif` 输出、`5.gif` 完成。
-- 想加新皮肤：在 `素材/` 下新建子目录，放入 5 张 GIF，重新跑 `install-pet.cjs`。
+- 想加新皮肤：在 `素材/` 下新建子目录，放入 5 张 GIF，重新跑 `install-pet.cjs`。（tip:另一个皮肤是绝区零角色雷米埃尔）
 - 想换动作包：替换 `蓝色大肥鱼表情包/` 里的 GIF（保持 `.gif` 后缀），重新安装。
 
 ## 素材来源与授权
 
-- 表情包素材来自 B 站 UP 主 **「赤风RED」**，已获授权使用。请保留此署名；若用于其它用途，请自行确认授权范围。
-- 皮肤 GIF 请按同样方式标注来源。
+- 表情包素材来自 B 站 UP 主 **「赤风RED」**，已获授权使用。若用于其它用途，请自行确认获取up主本人授权。
+
 
 ## 目录说明
 
@@ -84,4 +86,4 @@ pet-src/               # 插件源码（宿主端 + 客户端）
 
 ## License
 
-代码采用 [MIT](./LICENSE)。表情包素材版权归原作者「赤风RED」所有，使用请遵守其授权约定。
+代码采用 [MIT](./LICENSE)。鲸鱼娘gif素材版权归原作者B站up「赤风RED」所有。
