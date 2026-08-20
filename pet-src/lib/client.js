@@ -20,8 +20,10 @@ window.__ModuleLoader__.load({
 		const IDLE_FLIP_MS = 2500;
 		const DONE_MS = 5000;
 		const POLL_MS = 250;
-		const REACTION_MS = 3000;
-		const SEQ_MS = 2000;
+		const REACTION_MS = 3000;     // 单动作兜底展示时长（GIF 时长解析失败时使用）
+		const SEQ_MS = 2000;          // 轮番播放兜底展示时长
+		const MIN_REACTION_MS = 1500; // 任何动作至少展示这么久，避免一闪而过
+		const SEQ_TAIL_MS = 300;      // GIF 完整播完一遍后额外停留的呼吸时间
 
 		// Injected by install-pet.cjs: array of reaction GIF filenames, served by
 		// the host /api/pet/reactions/<name> route. Used for the random left-click
@@ -609,12 +611,76 @@ window.__ModuleLoader__.load({
 			};
 		}
 
+		/**
+		 * Parse a GIF byte buffer and return the total duration of one full
+		 * animation pass in milliseconds, by summing every frame's Graphic
+		 * Control Extension delay. Falls back to fallbackMs when the file
+		 * structure is unreadable or has no timing info.
+		 */
+		function parseGifDurationMs(buf, fallbackMs) {
+			try {
+				if (!buf || buf.byteLength < 14) return fallbackMs;
+				const dv = new DataView(buf);
+				// GIF87a / GIF89a magic
+				if (dv.getUint8(0) !== 0x47 || dv.getUint8(1) !== 0x49 || dv.getUint8(2) !== 0x46) return fallbackMs;
+				const packed = dv.getUint8(10);
+				let pos = 13;
+				if (packed & 0x80) pos += 3 * (2 << (packed & 0x07)); // global color table
+				let totalMs = 0;
+				let frames = 0;
+				while (pos + 1 <= buf.byteLength) {
+					const b = dv.getUint8(pos);
+					if (b === 0x3b) break; // trailer
+					if (b === 0x21) { // extension block
+						const label = dv.getUint8(pos + 1);
+						pos += 2;
+						if (label === 0xf9) { // graphic control extension
+							const size = dv.getUint8(pos);
+							if (size !== 4 || pos + size + 2 > buf.byteLength) return fallbackMs;
+							const delayCs = dv.getUint16(pos + 1, true); // 1/100 s
+							pos += size + 1; // 4 data bytes + block terminator
+							totalMs += delayCs * 10;
+							frames++;
+							continue;
+						}
+						// other extensions (comment / app / plain text): skip sub-blocks
+						while (pos < buf.byteLength) {
+							const sz = dv.getUint8(pos); pos += 1;
+							if (sz === 0) break;
+							pos += sz;
+						}
+						continue;
+					}
+					if (b === 0x2c) { // image descriptor
+						if (pos + 10 > buf.byteLength) return fallbackMs;
+						const packed2 = dv.getUint8(pos + 9);
+						pos += 10;
+						if (packed2 & 0x80) pos += 3 * (2 << (packed2 & 0x07)); // local color table
+						pos += 1; // LZW minimum code size
+						while (pos < buf.byteLength) {
+							const sz = dv.getUint8(pos); pos += 1;
+							if (sz === 0) break;
+							pos += sz;
+						}
+						continue;
+					}
+					return fallbackMs; // unknown block type
+				}
+				if (frames === 0) return fallbackMs;
+				// Browsers clamp tiny frame delays, so never trust sub-20ms frames.
+				const ms = Math.max(totalMs, frames * 20);
+				return ms >= 200 ? ms : fallbackMs;
+			} catch (_) {
+				return fallbackMs;
+			}
+		}
+
 		function createRenderer(dom, getAssets) {
 			let mode = null;
 			let idleTimer = null;
 			let idleIndex = 0;
-			let reactionTimer = null;
-			let seqTimer = null;
+			let reactionToken = null; // { cancelled } of the running single reaction
+			let seqToken = null;      // { cancelled } of the running sequence
 
 			function assets() {
 				const a = getAssets();
@@ -645,9 +711,9 @@ window.__ModuleLoader__.load({
 			}
 
 			function applyMode() {
-				if (seqTimer) {
-					clearInterval(seqTimer);
-					seqTimer = null;
+				if (seqToken) {
+					seqToken.cancelled = true;
+					seqToken = null;
 				}
 				if (mode === "idle") {
 					applyIdle();
@@ -668,41 +734,104 @@ window.__ModuleLoader__.load({
 				applyMode();
 			}
 
+			// Point dom.img at a URL and resolve once it has actually loaded.
+			function loadIntoDom(url) {
+				return new Promise((resolve) => {
+					const img = dom.img;
+					const done = () => {
+						img.removeEventListener("load", done);
+						img.removeEventListener("error", done);
+						resolve();
+					};
+					img.addEventListener("load", done);
+					img.addEventListener("error", done);
+					img.src = url;
+				});
+			}
+
+			function sleep(ms) {
+				return new Promise((r) => setTimeout(r, ms));
+			}
+
+			/**
+			 * Play one reaction GIF once, from start to finish:
+			 * fetch (cache-friendly) -> parse the GIF's own frame timing ->
+			 * show it -> wait until its animation pass completes -> return.
+			 * On any failure, fall back to a fixed display duration.
+			 */
+			async function playReactionAsync(src, fallbackMs, token) {
+				let blobUrl = null;
+				try {
+					const res = await fetch(src, { cache: "force-cache" });
+					if (!res.ok) throw new Error("HTTP " + res.status);
+					const buf = await res.arrayBuffer();
+					if (token.cancelled) return;
+					const dur = parseGifDurationMs(buf, fallbackMs);
+					blobUrl = URL.createObjectURL(new Blob([buf], { type: "image/gif" }));
+					await loadIntoDom(blobUrl);
+					if (token.cancelled) return;
+					// Let the GIF finish its own animation pass, plus a breath.
+					await sleep(Math.max(dur, MIN_REACTION_MS) + SEQ_TAIL_MS);
+				} catch (_) {
+					if (token.cancelled) return;
+					try { dom.img.src = src; } catch (_) {}
+					await sleep(fallbackMs);
+				} finally {
+					if (blobUrl) { try { URL.revokeObjectURL(blobUrl); } catch (_) {} }
+				}
+			}
+
 			function playReaction(src, durationMs) {
 				clearInterval(idleTimer);
 				idleTimer = null;
-				if (reactionTimer) clearTimeout(reactionTimer);
-				if (seqTimer) {
-					clearInterval(seqTimer);
-					seqTimer = null;
+				if (seqToken) {
+					seqToken.cancelled = true;
+					seqToken = null;
 				}
-				dom.img.src = src;
-				reactionTimer = setTimeout(() => {
-					reactionTimer = null;
-					applyMode();
-				}, durationMs);
+				if (reactionToken) reactionToken.cancelled = true;
+				const token = { cancelled: false };
+				reactionToken = token;
+				playReactionAsync(src, durationMs, token).then(() => {
+					if (reactionToken === token && !token.cancelled) {
+						reactionToken = null;
+						applyMode();
+					}
+				});
 			}
 
-			// Loop through a list of GIF sources until the pet's state changes
-			// (set) or another action interrupts it.
+			/**
+			 * Play every GIF in the list, one full animation pass each, until
+			 * the pet's state changes or another action interrupts it.
+			 */
 			function playSequence(urls, intervalMs) {
 				clearInterval(idleTimer);
 				idleTimer = null;
-				if (reactionTimer) clearTimeout(reactionTimer);
-				if (seqTimer) clearInterval(seqTimer);
+				if (reactionToken) {
+					reactionToken.cancelled = true;
+					reactionToken = null;
+				}
+				if (seqToken) seqToken.cancelled = true;
 				if (!Array.isArray(urls) || urls.length === 0) return;
-				let i = 0;
-				dom.img.src = urls[0];
-				seqTimer = setInterval(() => {
-					i = (i + 1) % urls.length;
-					dom.img.src = urls[i];
-				}, intervalMs);
+				const token = { cancelled: false };
+				seqToken = token;
+				(async () => {
+					let i = 0;
+					while (!token.cancelled) {
+						await playReactionAsync(urls[i], intervalMs, token);
+						if (token.cancelled) break;
+						i = (i + 1) % urls.length;
+					}
+					if (seqToken === token) {
+						seqToken = null;
+						if (!token.cancelled) applyMode();
+					}
+				})();
 			}
 
 			function dispose() {
 				clearInterval(idleTimer);
-				if (reactionTimer) clearTimeout(reactionTimer);
-				if (seqTimer) clearInterval(seqTimer);
+				if (reactionToken) reactionToken.cancelled = true;
+				if (seqToken) seqToken.cancelled = true;
 			}
 
 			return { set, refreshSkin, playReaction, playSequence, dispose };
