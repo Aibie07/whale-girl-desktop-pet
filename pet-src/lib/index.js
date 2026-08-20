@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const name = "dsh-pet";
-const inject = ["webServer"];
+const inject = ["webServer", "credentials"];
 
 // Reactions live next to this plugin (copied by install-pet.cjs), located
 // relative to this file so the installed plugin is relocatable.
@@ -33,7 +33,7 @@ function sendJson(res, status, obj) {
 
 function apply(ctx) {
   const webServer = ctx.webServer;
-  const credentials = ctx.get("credentials");
+  const credentials = ctx.credentials;
 
   const disposeBalance = webServer.register({
     kind: "exact",
