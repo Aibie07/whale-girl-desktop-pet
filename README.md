@@ -9,7 +9,7 @@
   - 左键拖拽移动、滚轮缩放、双击复位大小；
   - 左键单击随机播放一个动作；
   - 右键弹出菜单：调大小 / 换肤 / 动作 / 轮番播放 / 查余额 / 复位位置 / 隐藏。
-- **多套皮肤**：`素材/` 目录下的 GIF 自动识别为皮肤，右键「换肤」切换。
+- **皮肤**：`素材/` 根目录 5 张 =「默认」皮肤（鲸鱼娘）；在 `素材/` 下加子目录（每套 5 张 GIF）即自动识别为新皮肤，右键「换肤」切换。
 - **查询余额**：点击「查余额」显示 DeepSeek API 余额。
   -  API 密钥由宿主端运行时读取（`DEEPSEEK_API_KEY`），**不会写入浏览器**。
 
@@ -48,10 +48,9 @@ node install-pet.cjs
    node install-pet.cjs
 ### 素材包（Release）
 
-皮肤和表情包体积较大（约 488MB），**不放在 git 仓库里**，而是打包成 `assets.tar.gz` 上传到 GitHub Release。安装脚本会在素材目录缺失时自动下载解压。
+皮肤和表情包体积较大（约 471MB），**不放在 git 仓库里**，而是打包成 `assets.tar.gz` 上传到 GitHub Release。安装脚本会在素材目录缺失时自动下载解压。
 
 - 下载地址默认为 `https://github.com/Aibie07/whale-girl-desktop-pet/releases/download/v1.0.0/assets.tar.gz`；
-- 若你 fork 后改了 Release 地址，可用环境变量覆盖：`DSH_PET_ASSETS_URL=<你的下载地址> node install-pet.cjs`；
 - 也可以手动下载 `assets.tar.gz`，解压到项目根目录（得到 `素材/` 和 `蓝色大肥鱼表情包/`）后再运行安装脚本。
 - 国内用户推荐网盘下载，网盘链接：https://pan.quark.cn/s/4281a37690c6，提取码 UXSv（提供方：B 站 UP 主 **「赤风RED」**）
 ## 素材目录结构
@@ -59,17 +58,15 @@ node install-pet.cjs
 > 这些目录由安装脚本从 Release 下载解压而来（已被 `.gitignore` 忽略，不在仓库里）。
 
 ```
-素材/                      # 皮肤：根目录 5 张 =「默认」皮肤
+素材/                      # 皮肤：根目录 5 张 =「默认」皮肤（鲸鱼娘）
 ├── 1.gif  ... 5.gif       # 待机A / 思考 / 待机B / 输出 / 完成
-└── 大肥鱼/                # 额外的皮肤（子目录名 = 皮肤名）
-    ├── 1.gif ... 5.gif
 
 蓝色大肥鱼表情包/           # 动作 / 轮番播放 用到的 GIF（157 张）
 └── *.gif
 ```
 
 - 皮肤命名约定（每个皮肤 5 张）：`1.gif` 待机A、`2.gif` 思考、`3.gif` 待机B、`4.gif` 输出、`5.gif` 完成。
-- 想加新皮肤：在 `素材/` 下新建子目录，放入 5 张 GIF，重新跑 `install-pet.cjs`。（tip:另一个皮肤是绝区零角色雷米埃尔）
+- 想加新皮肤：在 `素材/` 下新建子目录，放入 5 张 GIF，重新跑 `install-pet.cjs`，新皮肤会出现在右键「换肤」菜单里。
 - 想换动作包：替换 `蓝色大肥鱼表情包/` 里的 GIF（保持 `.gif` 后缀），重新安装。
 
 ## 素材来源与授权
@@ -114,7 +111,7 @@ A desktop pet plugin for [DeepSeek Harness Desktop (DSH)](https://github.com/dee
   - Left-drag to move, scroll wheel to resize, double-click to reset size;
   - Left-click to play a random action;
   - Right-click menu: resize / switch skin / actions / play through all / check balance / reset position / hide.
-- **Multiple skins**: GIFs in the `素材/` folder are auto-detected as skins, switchable via right-click → 换肤 (Switch skin).
+- **Skins**: the 5 GIFs in the `素材/` root are the "默认" (default) skin (whale girl); adding a subfolder under `素材/` (5 GIFs per skin) auto-detects it as a new skin, switchable via right-click → 换肤 (Switch skin).
 - **Balance lookup**: click 查余额 (Check balance) to show your DeepSeek API balance.
   - The API key is read at runtime by the host process (`DEEPSEEK_API_KEY`) and is **never exposed to the browser**.
 
@@ -165,7 +162,7 @@ Then **restart the DSH app**, open the page (refresh with F5 if needed), and the
 
 ### Asset pack (Release)
 
-The skins and reactions are large (~488 MB), so they are **not stored in the git repo** — they are packed into `assets.tar.gz` and uploaded to a GitHub Release. The install script downloads and extracts it automatically when the asset folders are missing.
+The skins and reactions are large (~471 MB), so they are **not stored in the git repo** — they are packed into `assets.tar.gz` and uploaded to a GitHub Release. The install script downloads and extracts it automatically when the asset folders are missing.
 
 - Default download URL: `https://github.com/Aibie07/whale-girl-desktop-pet/releases/download/v1.0.0/assets.tar.gz`
 - If you fork and change the Release URL, override it with an env var: `DSH_PET_ASSETS_URL=<your-url> node install-pet.cjs`
@@ -177,17 +174,15 @@ The skins and reactions are large (~488 MB), so they are **not stored in the git
 > These folders are downloaded and extracted by the install script from the Release (they are ignored by `.gitignore` and are not in the repo).
 
 ```
-素材/                      # Skins: 5 GIFs in the root = the "默认" (default) skin
+素材/                      # Skins: 5 GIFs in the root = the "默认" (default) skin (whale girl)
 ├── 1.gif  ... 5.gif       # idleA / thinking / idleB / output / done
-└── 大肥鱼/                # Extra skins (subfolder name = skin name)
-    ├── 1.gif ... 5.gif
 
 蓝色大肥鱼表情包/           # Reaction GIFs used by actions / play-through (157 GIFs)
 └── *.gif
 ```
 
 - Skin naming convention (5 GIFs per skin): `1.gif` idleA, `2.gif` thinking, `3.gif` idleB, `4.gif` output, `5.gif` done.
-- To add a new skin: create a subfolder under `素材/`, put 5 GIFs in it, and re-run `install-pet.cjs`. (tip: another skin is the Zenless Zone Zero character Remiel)
+- To add a new skin: create a subfolder under `素材/`, put 5 GIFs in it, and re-run `install-pet.cjs`. The new skin then appears in the right-click 换肤 (Switch skin) menu.
 - To change the action pack: replace the GIFs in `蓝色大肥鱼表情包/` (keep the `.gif` extension) and reinstall.
 
 ## Asset source & license
