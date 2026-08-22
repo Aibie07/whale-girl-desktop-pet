@@ -22,12 +22,12 @@
 ## 两个安装方式选一个即可，国外或有梯子推荐安装方式1，中国国内用户推荐安装方式2
 ## 安装1（国外用户或者有梯子）
 tip:本插件目前只通过 git clone 安装
-
 ```bash
 git clone https://github.com/Aibie07/whale-girl-desktop-pet dsh-pet
 cd dsh-pet
 node install-pet.cjs
 ```
+tip:用方式一装桌宠时，如果脚本报「下载素材失败（网络错误）」，先把梯子的TUN模式打开再重跑
 
 然后**重启 DSH 应用**，打开页面（必要时刷新 F5），右下角即可看到桌宠。
 
